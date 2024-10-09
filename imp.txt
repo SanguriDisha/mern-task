@@ -1,0 +1,27 @@
+const express = require('express');
+const router = express.Router();
+const Product = require('../models/product');
+const axios = require('axios');
+
+// Route to initialize the database with seed data
+router.get('/initialize', async (req, res) => {
+  try {
+    // Fetch the data from the third-party API
+    const response = await axios.get('https://s3.amazonaws.com/roxiler.com/product_transaction.json');
+    const products = response.data;
+
+    // Remove existing products if you want to reset the data
+    await Product.deleteMany({});
+
+    // Insert fetched data into the database
+    await Product.insertMany(products);
+
+    res.status(200).json({ message: 'Database initialized successfully!' });
+  } catch (error) {
+    console.error('Error fetching or inserting data:', error);
+    res.status(500).json({ message: 'An error occurred' });
+  }
+});
+
+module.exports = router;
+
